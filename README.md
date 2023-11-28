@@ -1,8 +1,8 @@
-# ONLYOFFICE DocSpace telegram reporter
+# ONLYOFFICE DocSpace telegram reports
 
 ## Overview
 
-ONLYOFFICE DocSpace telegram reporter is a service for forwarding client errors from Firebase to Telegram.
+ONLYOFFICE DocSpace telegram reports is a service for forwarding client errors from Firebase to Telegram.
 
 ### Installation and usage
 
@@ -13,4 +13,4 @@ $ yart start
 
 ## Licensing 
 
-ONLYOFFICE DocSpace telegram reporter is released under AGPLv3 license. See the LICENSE file for more information.
+ONLYOFFICE DocSpace telegram reports is released under AGPLv3 license. See the LICENSE file for more information.
