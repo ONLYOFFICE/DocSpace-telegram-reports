@@ -1,0 +1,38 @@
+{
+  "app": {
+    "botKey": "",
+    "chatId": "",
+    "logPath": "../logs"
+  },
+  "firebase": {
+    "io": {
+      "projectId": "",
+      "apiKey": "",
+      "authDomain": "",
+      "storageBucket": "",
+      "messagingSenderId": "",
+      "appId": "",
+      "measurementId": "",
+      "databaseURL": ""
+    },
+    "com": {
+      "projectId": "",
+      "apiKey": "",
+      "authDomain": "",
+      "storageBucket": "",
+      "messagingSenderId": "",
+      "appId": "",
+      "measurementId": "",
+      "databaseURL": ""
+    }
+  },
+  "aws": {
+    "cloudWatch": {
+      "accessKeyId": "",
+      "secretAccessKey": "",
+      "region": "us-east-1",
+      "logGroupName": "/asc/docspace/cluster/cluster_name/general",
+      "logStreamName": "${hostname} - ${applicationContext} - ${date} - ${guid}"
+    }
+  }
+}
