@@ -6,23 +6,35 @@
   },
   "firebase": {
     "io": {
-      "projectId": "",
-      "apiKey": "",
-      "authDomain": "",
-      "storageBucket": "",
-      "messagingSenderId": "",
-      "appId": "",
-      "measurementId": "",
+      "serviceAccount": {
+        "type": "service_account",
+        "project_id": "",
+        "private_key_id": "",
+        "private_key": "",
+        "client_email": "",
+        "client_id": "",
+        "auth_uri": "",
+        "token_uri": "",
+        "auth_provider_x509_cert_url": "",
+        "client_x509_cert_url": "",
+        "universe_domain": ""
+      },
       "databaseURL": ""
     },
     "com": {
-      "projectId": "",
-      "apiKey": "",
-      "authDomain": "",
-      "storageBucket": "",
-      "messagingSenderId": "",
-      "appId": "",
-      "measurementId": "",
+      "serviceAccount": {
+        "type": "service_account",
+        "project_id": "",
+        "private_key_id": "",
+        "private_key": "",
+        "client_email": "",
+        "client_id": "",
+        "auth_uri": "",
+        "token_uri": "",
+        "auth_provider_x509_cert_url": "",
+        "client_x509_cert_url": "",
+        "universe_domain": ""
+      },
       "databaseURL": ""
     }
   },
@@ -30,7 +42,7 @@
     "cloudWatch": {
       "accessKeyId": "",
       "secretAccessKey": "",
-      "region": "us-east-1",
+      "region": "",
       "logGroupName": "/asc/docspace/cluster/cluster_name/general",
       "logStreamName": "${hostname} - ${applicationContext} - ${date} - ${guid}"
     }

@@ -1,71 +1,44 @@
-import { initializeApp } from "firebase/app";
-import {
-  getDatabase,
-  ref,
-  onValue,
-  onChildAdded,
-  query,
-  limitToLast,
-} from "firebase/database";
-//import { getAuth, signInAnonymously } from "firebase/auth";
+import admin from "firebase-admin";
 
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./src/app/app.module";
 import { AppService } from "./src/app/app.service";
 import Report from "src/report";
-
+import Message from "src/message";
 import config from "./config";
+
+const winston = require("./src/log.js");
+const firebaseConfig = config.get("firebase");
 const IO = "io";
 const COM = "com";
 
-const winston = require("./src/log.js");
+const listen = (fbApp: admin.app.App, appService: AppService): void => {
+  var queryRef = fbApp.database().ref("reports").limitToLast(1);
+  let first = true;
+  let index = 0;
 
-const firebaseConfig = config.get("firebase");
-
-
-
-// Initialize Firebase apps
-const fbIOApp = initializeApp(firebaseConfig[IO], IO);
-const fbCOMApp = initializeApp(firebaseConfig[COM], COM);
-
-const connect = (
-  fbApp: any,
-  type: string,
-  callback: (value: Report) => void
-) => {
-  const db = getDatabase(fbApp);
-
-  const connectedRef = ref(db, ".info/connected");
-  onValue(connectedRef, (snap) => {
-    if (snap.val() !== true) {
-      winston.info(`FB ${type}: not connected`);
-      return;
-    }
-
-    winston.info(`FB ${type}: connected`);
-
-    const reportsRef = ref(db, "reports");
-    const recentQuery = query(reportsRef, limitToLast(1));
-
-    winston.info(`FB ${type}: start listening on child added`, {
-      reportsRef,
-    });
-
-    let first = true;
-    let index = 0;
-
-    onChildAdded(recentQuery, (data) => {
+  // Retrieve new reports as they are added to our database
+  queryRef.on("child_added", (snapshot: admin.database.DataSnapshot) => {
+    try {
       if (first) {
         first = false;
         return;
       } // skip first element
+
       index++;
-      const value = data.val() as Report;
+
+      const newReport = snapshot.val() as Report;
+
       winston.info(
-        `FB ${type}: NEW ${type} REPORT #${index} message: ${value?.errorMessage}`
+        `FB ${fbApp.name}: NEW REPORT #${index} key:'${snapshot.ref.key}' message: ${newReport?.errorMessage}`
       );
-      callback(value);
-    });
+
+      const m = new Message(snapshot.ref.key, newReport, fbApp.name);
+
+      appService.sendMessage(m);
+    } catch (e) {
+      winston.error(e);
+    }
   });
 };
 
@@ -76,13 +49,33 @@ async function bootstrap() {
 
     winston.info(`Start TelegramReports Service`);
 
-    connect(fbIOApp, IO, (report) => {
-      appService.sendMessage(report, IO); //`REPORT ${IO}: ${report}`);
-    });
+    winston.info(`Start listen ${IO}`);
 
-    connect(fbCOMApp, COM, (report) => {
-      appService.sendMessage(report, COM); // `REPORT ${COM}: ${report}`);
-    });
+    const fbIOaccount = firebaseConfig[IO];
+
+    const ioApp = admin.initializeApp(
+      {
+        credential: admin.credential.cert(fbIOaccount["serviceAccount"]),
+        databaseURL: fbIOaccount["databaseURL"],
+      },
+      IO
+    );
+
+    listen(ioApp, appService);
+
+    winston.info(`Start listen ${COM}`);
+
+    const fbCOMaccount = firebaseConfig[COM];
+
+    const comApp = admin.initializeApp(
+      {
+        credential: admin.credential.cert(fbCOMaccount["serviceAccount"]),
+        databaseURL: fbCOMaccount["databaseURL"],
+      },
+      COM
+    );
+
+    listen(comApp, appService);
   } catch (e) {
     winston.error(e);
   }
