@@ -5,7 +5,6 @@ CURRENT_DATE=$(date "+%Y%m%d-%H%M%S")
 
 # Define variables
 DOCKER_CONTAINER_TAG="node:18-alpine"
-EXPOSE_PORT="30000"
 APP_NAME="docspace-telegram-reports"
 APP_DIR="/app/$APP_NAME"
 SOURCE_ARCHIVE_PATH="/home/ubuntu/deploy/.jenkins/docspace-telegram-reports.tar.gz"
