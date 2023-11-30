@@ -85,6 +85,8 @@ pipeline {
                 .firebase.com.serviceAccount.universe_domain = "'"$FIREBASE_COM_UNIVERSE_DOMAIN"'" |
                 .firebase.com.databaseURL = "'"$FIREBASE_COM_DATABASE_URL"'"' input.json > config/config.json
             
+            rm ./input.json
+
             tar -czpf .jenkins/docspace-telegram-reports.tar.gz \
               --exclude ".git" \
               --exclude ".gitignore" \
