@@ -1,0 +1,120 @@
+println("Branch name: ${BRANCH_NAME}")
+
+switch(BRANCH_NAME) {
+  case "test_deploy":
+    break
+  case "production_deploy":
+    aws_region="us-west-2"
+    break
+  default:
+    println("Branch: ${BRANCH_NAME} do not for deploy.")
+    break
+}
+
+pipeline {
+  agent { label 'ubuntu' }
+  triggers {
+    githubPush()
+  }
+  options {
+    disableConcurrentBuilds()
+    buildDiscarder (logRotator(numToKeepStr: '5', artifactNumToKeepStr: '5'))
+  }
+  stages {    
+    stage('deploy') {
+      when { 
+        anyOf { branch 'test_deploy'; 
+                branch 'production_deploy' }
+      }
+      environment {
+        aws_region = "${aws_region}"
+      }
+      steps { 
+        withCredentials([
+                string(credentialsId: 'docspacetg_app_botkey', variable: 'APP_BOTKEY'), 
+                string(credentialsId: 'docspacetg_app_chatid', variable: 'APP_CHATID'), 
+                string(credentialsId: 'docspacetg_firebase_io_project_id', variable: 'FIREBASE_IO_PROJECT_ID'),
+                string(credentialsId: 'docspacetg_firebase_io_private_key_id', variable: 'FIREBASE_IO_PRIVATE_KEY_ID'),
+                string(credentialsId: 'docspacetg_firebase_io_private_key', variable: 'FIREBASE_IO_PRIVATE_KEY'),
+                string(credentialsId: 'docspacetg_firebase_io_client_email', variable: 'FIREBASE_IO_CLIENT_EMAIL'),
+                string(credentialsId: 'docspacetg_firebase_io_client_id', variable: 'FIREBASE_IO_CLIENT_ID'),
+                string(credentialsId: 'docspacetg_firebase_io_auth_uri', variable: 'FIREBASE_IO_AUTH_URI'),
+                string(credentialsId: 'docspacetg_firebase_io_token_uri', variable: 'FIREBASE_IO_TOKEN_URI'),
+                string(credentialsId: 'docspacetg_firebase_io_auth_provider_x509_cert_url', variable: 'FIREBASE_IO_AUTH_PROVIDER_X509_CERT_URL'),
+                string(credentialsId: 'docspacetg_firebase_io_client_x509_cert_url', variable: 'FIREBASE_IO_CLIENT_X509_CERT_URL'),
+                string(credentialsId: 'docspacetg_firebase_io_universe_domain', variable: 'FIREBASE_IO_UNIVERSE_DOMAIN'),
+                string(credentialsId: 'docspacetg_firebase_io_database_url', variable: 'FIREBASE_IO_DATABASE_URL'),
+                string(credentialsId: 'docspacetg_firebase_com_project_id', variable: 'FIREBASE_COM_PROJECT_ID'),
+                string(credentialsId: 'docspacetg_firebase_com_private_key_id', variable: 'FIREBASE_COM_PRIVATE_KEY_ID'),
+                string(credentialsId: 'docspacetg_firebase_com_private_key', variable: 'FIREBASE_COM_PRIVATE_KEY'),
+                string(credentialsId: 'docspacetg_firebase_com_client_email', variable: 'FIREBASE_COM_CLIENT_EMAIL'),
+                string(credentialsId: 'docspacetg_firebase_com_client_id', variable: 'FIREBASE_COM_CLIENT_ID'),
+                string(credentialsId: 'docspacetg_firebase_com_auth_uri', variable: 'FIREBASE_COM_AUTH_URI'),
+                string(credentialsId: 'docspacetg_firebase_com_token_uri', variable: 'FIREBASE_COM_TOKEN_URI'),
+                string(credentialsId: 'docspacetg_firebase_com_auth_provider_x509_cert_url', variable: 'FIREBASE_COM_AUTH_PROVIDER_X509_CERT_URL'),
+                string(credentialsId: 'docspacetg_firebase_com_client_x509_cert_url', variable: 'FIREBASE_COM_CLIENT_X509_CERT_URL'),
+                string(credentialsId: 'docspacetg_firebase_com_universe_domain', variable: 'FIREBASE_COM_UNIVERSE_DOMAIN'),
+                string(credentialsId: 'docspacetg_firebase_com_database_url', variable: 'FIREBASE_COM_DATABASE_URL'),
+                ]) {
+
+          sh '''
+            cp config/config.json ./input.json
+
+            jq '.app.botKey = "'"$APP_BOTKEY"'" |
+                .app.chatId = "'"$APP_CHATID"'" |
+                .firebase.io.serviceAccount.project_id = "'"$FIREBASE_IO_PROJECT_ID"'" |
+                .firebase.io.serviceAccount.private_key_id = "'"$FIREBASE_IO_PRIVATE_KEY_ID"'" |
+                .firebase.io.serviceAccount.private_key = "'"$FIREBASE_IO_PRIVATE_KEY"'" |
+                .firebase.io.serviceAccount.client_email = "'"$FIREBASE_IO_CLIENT_EMAIL"'" |
+                .firebase.io.serviceAccount.client_id = "'"$FIREBASE_IO_CLIENT_ID"'" |
+                .firebase.io.serviceAccount.auth_uri = "'"$FIREBASE_IO_AUTH_URI"'" |
+                .firebase.io.serviceAccount.token_uri = "'"$FIREBASE_IO_TOKEN_URI"'" |
+                .firebase.io.serviceAccount.auth_provider_x509_cert_url = "'"$FIREBASE_IO_AUTH_PROVIDER_X509_CERT_URL"'" |
+                .firebase.io.serviceAccount.client_x509_cert_url = "'"$FIREBASE_IO_CLIENT_X509_CERT_URL"'" |
+                .firebase.io.serviceAccount.universe_domain = "'"$FIREBASE_IO_UNIVERSE_DOMAIN"'" |
+                .firebase.io.databaseURL = "'"$FIREBASE_IO_DATABASE_URL"'" |
+                .firebase.com.serviceAccount.project_id = "'"$FIREBASE_COM_PROJECT_ID"'" |
+                .firebase.com.serviceAccount.private_key_id = "'"$FIREBASE_COM_PRIVATE_KEY_ID"'" |
+                .firebase.com.serviceAccount.private_key = "'"$FIREBASE_COM_PRIVATE_KEY"'" |
+                .firebase.com.serviceAccount.client_email = "'"$FIREBASE_COM_CLIENT_EMAIL"'" |
+                .firebase.com.serviceAccount.client_id = "'"$FIREBASE_COM_CLIENT_ID"'" |
+                .firebase.com.serviceAccount.auth_uri = "'"$FIREBASE_COM_AUTH_URI"'" |
+                .firebase.com.serviceAccount.token_uri = "'"$FIREBASE_COM_TOKEN_URI"'" |
+                .firebase.com.serviceAccount.auth_provider_x509_cert_url = "'"$FIREBASE_COM_AUTH_PROVIDER_X509_CERT_URL"'" |
+                .firebase.com.serviceAccount.client_x509_cert_url = "'"$FIREBASE_COM_CLIENT_X509_CERT_URL"'" |
+                .firebase.com.serviceAccount.universe_domain = "'"$FIREBASE_COM_UNIVERSE_DOMAIN"'" |
+                .firebase.com.databaseURL = "'"$FIREBASE_COM_DATABASE_URL"'"' input.json > config/config.json
+            
+            tar -czpf .jenkins/docspace-telegram-reports.tar.gz \
+              --exclude ".git" \
+              --exclude ".gitignore" \
+              --exclude ".jenkins" \
+              --exclude "README.md" .
+            
+            echo "Deploy from ${BRANCH_NAME} is starting."
+          '''
+        }
+        
+        sshPublisher(publishers: [sshPublisherDesc(configName: "strapi_oforms@com", 
+          transfers: [sshTransfer(cleanRemote: false, 
+            excludes: '', 
+            execCommand: '''
+              sudo bash /home/ubuntu/deploy/.jenkins/build.sh |& tee -a > /home/ubuntu/deploy/docspace-telegram-reports.log
+            ''', 
+            execTimeout: 600000, 
+            flatten: false, 
+            makeEmptyDirs: false, 
+            noDefaultExcludes: false, 
+            patternSeparator: '[, ]+', 
+            remoteDirectory: '', 
+            remoteDirectorySDF: false, 
+            removePrefix: '', 
+            sourceFiles: '.jenkins/docspace-telegram-reports.tar.gz,.jenkins/build.sh')], 
+          usePromotionTimestamp: false, 
+          useWorkspaceInPromotion: false, 
+          verbose: false)])
+      }
+    }
+    
+  }
+}
