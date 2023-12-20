@@ -45,6 +45,8 @@ const parseStackTrace = async (stackTrace: string) => {
 
   //console.log(errors);
 
+  if (errors.length === 0 || sourceFile === null) return null;
+
   const response = await fetch(`${sourceFile}.js.map`);
   const conf = await response.json();
 
