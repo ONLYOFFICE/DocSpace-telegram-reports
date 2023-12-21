@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { Telegraf } from "telegraf";
 
 import config from "../../config";
-import Report from "src/report";
 import Message from "src/message";
 
 const winston = require("../log.js");
@@ -25,6 +24,12 @@ export class AppService {
   async sendMessage(message: Message): Promise<string> {
     if (!botKey) throw new Error("Empty bot key");
     if (!chatId) throw new Error("Empty chat ID");
+
+    message.report.localStorage = undefined; // hide localStorage - too long
+
+    if (message.report.errors?.length > 0) {
+      message.report.errorStack = undefined; // hide raw errorStack on parsed errors existance
+    }
 
     const text =
       `[${message.zone}] DocSpace client:\nKey: '${message.key}'\nReport:\n` +

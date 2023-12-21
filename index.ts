@@ -6,6 +6,7 @@ import { AppService } from "./src/app/app.service";
 import Report from "src/report";
 import Message from "src/message";
 import config from "./config";
+import { parseStackTrace } from "src/utils";
 
 const winston = require("./src/log.js");
 const firebaseConfig = config.get("firebase");
@@ -33,9 +34,20 @@ const listen = (fbApp: admin.app.App, appService: AppService): void => {
         `FB ${fbApp.name}: NEW REPORT #${index} key:'${snapshot.ref.key}' message: ${newReport?.errorMessage}`
       );
 
-      const m = new Message(snapshot.ref.key, newReport, fbApp.name);
+      parseStackTrace(newReport.errorStack)
+        .then((errors) => {
+          if (errors) {
+            newReport.errors = errors;
+          }
+        })
+        .catch((e) => {
+          winston.error("parseStackTrace error", e);
+        })
+        .finally(() => {
+          const m = new Message(snapshot.ref.key, newReport, fbApp.name);
 
-      appService.sendMessage(m);
+          appService.sendMessage(m);
+        });
     } catch (e) {
       winston.error(e);
     }
