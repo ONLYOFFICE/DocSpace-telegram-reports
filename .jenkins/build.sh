@@ -34,7 +34,7 @@ find "$APP_DIR" -type f -exec chmod 644 {} \;
 cd "$APP_DIR"
 
 # Build application
-docker run --rm -v "$APP_DIR":"$APP_DIR" -w "$APP_DIR" "$DOCKER_CONTAINER_TAG" sh -c "yarn && yarn build"
+docker run --rm -v "$APP_DIR":"$APP_DIR" -w "$APP_DIR" "$DOCKER_CONTAINER_TAG" sh -c "yarn install && yarn build"
  
 # Start container if it exists or build and start it
 if docker ps -a | grep -wq "$APP_NAME"; then
