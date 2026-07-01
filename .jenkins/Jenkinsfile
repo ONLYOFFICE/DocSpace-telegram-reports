@@ -97,7 +97,7 @@ pipeline {
           '''
         }
         
-        sshPublisher(publishers: [sshPublisherDesc(configName: "strapi_oforms@com", 
+        sshPublisher(publishers: [sshPublisherDesc(configName: "sites2026@com", 
           transfers: [sshTransfer(cleanRemote: false, 
             excludes: '', 
             execCommand: '''
